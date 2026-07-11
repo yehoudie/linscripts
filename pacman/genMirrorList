@@ -1,0 +1,10 @@
+#!/bin/bash
+
+country=DE
+protocol=https
+ipv=4
+of=/etc/pacman.d/mirrorlist
+
+cp "$of" "$of.bck"
+curl "https://archlinux.org/mirrorlist/?country=$country&protocol=$protocol&ip_version=$ipv&use_mirror_status=on" -o $of
+
