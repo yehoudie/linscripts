@@ -45,8 +45,8 @@ function cutVideo() {
     local of="$4"
     
     ffmpeg -ss $start -to $to -i "$if" -vcodec copy -acodec copy "$of"
+    # add -y for overwrite output files
 
-    
     return $?
 }
 
@@ -59,8 +59,8 @@ function cutVideo() {
 # 4...: start end basename
 #
 # e.g.
-# Music/long.mp4
-# Music/out
+# Music/in.mp4
+# Music/out/
 # 1
 # 00:00:00 00:03:18 Song1
 # 00:03:18 00:05:55 Song2
@@ -92,6 +92,10 @@ function iterateFile() {
     local outdir=$(sed -n '2p' "$batch_file")
     local flags=$(sed -n '3p' "$batch_file")
     echo "outdir: "$outdir
+    if [ ! -d "$outdir" ]; then 
+        echo [e] Out dir does not exist!
+        return 2
+    fi
     local startline=4
     local nrCuts=$((nrLines-startline-1))
     local start=
@@ -142,7 +146,13 @@ function iterateFile() {
             echo of=$of
             echo title_nr=$title_nr
             cutVideo $start $end "$infile" "$of"
-            echo "finished with code "$?
+            local s=$?
+            
+            if [[ $s -ne 0 ]]; then
+                echo "[e] cutting video faile ($s)!"
+                break
+            fi
+            
             lineCount=$((lineCount+1))
             title_nr=$((title_nr+1))
         fi
@@ -152,7 +162,7 @@ function iterateFile() {
 }
 
 function createTemplate() {
-    echo "createing template in "$template_path
+    echo "creating template in "$template_path
     
     echo "Music/long.mp4" > "$template_path"
     echo "Music/out" >> "$template_path"
@@ -176,6 +186,7 @@ function printHelp() {
     echo "-s start time (hh:mm:ss)"
     echo "-e end time (hh:mm:ss)"
     echo "-b batch file"
+    echo "-t create template batch file in $template_path"
     echo "-h Print this."
     return 0;
 }

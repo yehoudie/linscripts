@@ -108,12 +108,24 @@ echo "mode: $mode"
 
 function handleFile() {
     local file=$1
+    local type_f=$2
+    local baseName=${file##*/}
+    # local base=${baseName%.*}
+    # local baseCb=${#base}
+    local type=${baseName#*.}
+    
     echo "File: "$file
+    echo "type: "$type
+    
+    if [ "$type_f" != "$type" ]; then
+        return 1
+    fi
     
     if [[ $(( mode & STEPPING_MODE )) -eq $(( STEPPING_MODE )) ]]; then
         read -p "Press any key to continue... " -n1 -s
         echo ""
     fi
+    
     # printf "file: %s\n" $file
     echo "-------------------------------"
     "${cmd}" ${b_args} "$file" ${a_args}
@@ -151,7 +163,7 @@ function itDir() {
                 fi
             elif [[ -f "${file}" ]]
             then
-                handleFile "${file}"
+                handleFile "${file}" ${type}
             else
                 echo "something else "${file}
             fi
